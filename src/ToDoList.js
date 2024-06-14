@@ -1,26 +1,65 @@
-import React from "react";
-import ToDoItem from "./ToDoItem";
+import React, { Component } from "react";
+import TodoItem from "./TodoItem";
 
-class ToDoList extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      toDoItems: [{ completed: false }, { completed: true }],
-    };
-  }
+class TodoList extends Component {
+  state = {
+    editingIndex: null,
+    editingText: "",
+  };
+
+  startEditing = (index, text) => {
+    this.setState({
+      editingIndex: index,
+      editingText: text,
+    });
+  };
+
+  stopEditing = () => {
+    const { editingIndex, editingText } = this.state;
+    if (editingIndex !== null) {
+      this.props.editItem(editingIndex, editingText);
+      this.setState({
+        editingIndex: null,
+        editingText: "",
+      });
+    }
+  };
+
+  handleTextChange = (e) => {
+    this.setState({ editingText: e.target.value });
+  };
+
+  handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      this.stopEditing();
+    }
+  };
 
   render() {
-    const { items } = this.props;
+    const { items, toggleItemCompletion, deleteItem } = this.props;
+    const { editingIndex, editingText } = this.state;
+    const sortedItems = [...items].sort((a, b) => a.completed - b.completed);
+
     return (
-      <div>
-        <ul>
-          {items.map((item, index) => {
-            return <ToDoItem key={index} item={item} />;
-          })}
-        </ul>
-      </div>
+      <ul className="todo-list">
+        {sortedItems.map((item, index) => (
+          <TodoItem
+            key={index}
+            item={item}
+            index={index}
+            editing={editingIndex === index}
+            editingText={editingText}
+            toggleItemCompletion={() => toggleItemCompletion(index)}
+            deleteItem={() => deleteItem(index)}
+            startEditing={() => this.startEditing(index, item.text)}
+            stopEditing={this.stopEditing}
+            handleTextChange={this.handleTextChange}
+            handleKeyPress={this.handleKeyPress}
+          />
+        ))}
+      </ul>
     );
   }
 }
 
-export default ToDoList;
+export default TodoList;
